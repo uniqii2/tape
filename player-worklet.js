@@ -52,7 +52,7 @@ class TP7Player extends AudioWorkletProcessor {
 
         this.targetSpeed = 0;
 
-        this.speedSmoothness = 0.02;
+        this.speedSmoothness = 0.0015;
 
         /*=====================================================
             OUTPUT GAIN
@@ -188,7 +188,7 @@ class TP7Player extends AudioWorkletProcessor {
 
             case "speed":
 
-                this.targetSpeed = message.speed;
+                this.targetSpeed = Number(message.speed) || 0;
 
                 break;
 
