@@ -46,13 +46,25 @@
 
         </div>
 
-        <button id="layout-toggle">
+        <div id="topbar-actions">
+            <button id="settings-toggle" aria-expanded="false" aria-controls="settings-panel">
+                ⚙ SETTINGS
+            </button>
 
-            ◫ PC UI
-
-        </button>
+            <button id="layout-toggle">
+                ◫ PC UI
+            </button>
+        </div>
 
     </header>
+
+    <section id="settings-panel" hidden>
+        <div class="settings-title">TRANSPORT BUTTONS</div>
+        <div class="settings-options" role="group" aria-label="Transport button behavior">
+            <button id="mode-toggle" class="settings-option active" type="button">TOGGLE</button>
+            <button id="mode-hold" class="settings-option" type="button">HOLD</button>
+        </div>
+    </section>
 
 
     <!-- ========================================================= -->
@@ -134,12 +146,6 @@
                 <div id="wheel-status">
 
                     MOTOR STOPPED
-
-                </div>
-
-                <div id="wheel-speed">
-
-                    0.00×
 
                 </div>
 
@@ -229,7 +235,7 @@
 
                 </div>
 
-                <div id="speed-value">
+                <div id="wheel-speed">
 
                     0.00×
 
@@ -350,21 +356,21 @@
                 </div>
 
 
-                <div id="correlation">
+                <div id="loudness-meters">
 
-                    <span>CORR</span>
-
-                    <div id="corr-track">
-
-                        <div id="corr-fill"></div>
-
+                    <div class="loudness-row">
+                        <span class="loudness-label">L</span>
+                        <div class="loudness-track">
+                            <div id="loudness-left" class="loudness-fill"></div>
+                        </div>
                     </div>
 
-                    <span id="corr-value">
-
-                        0.00
-
-                    </span>
+                    <div class="loudness-row">
+                        <span class="loudness-label">R</span>
+                        <div class="loudness-track">
+                            <div id="loudness-right" class="loudness-fill"></div>
+                        </div>
+                    </div>
 
                 </div>
 
