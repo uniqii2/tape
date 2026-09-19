@@ -1,0 +1,437 @@
+﻿:root {
+    --bg: #161616;
+    --bg2: #1d1d1d;
+    --bg3: #252525;
+    --panel: #1d1d1d;
+    --border: #343434;
+    --border-light: #4a4a4a;
+    --text: #ababab;
+    --text-dim: #666666;
+    --accent: #ff5500;
+    --cyan: #00ffcc;
+    --cyan-dark: #00b38f;
+    --black: #090909;
+    --transition: .15s ease;
+    --mono: "Share Tech Mono", monospace;
+    --ui: "Rajdhani", sans-serif;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    width: 100%;
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--ui);
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+}
+
+#app {
+    width: 100%;
+    max-width: 960px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+}
+
+#brand {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+}
+
+#layout-toggle {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    cursor: pointer;
+    padding: 6px 14px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    transition: var(--transition);
+}
+
+#layout-toggle:hover {
+    border-color: var(--cyan);
+    background: #1b2b28;
+}
+
+#main-container {
+    display: flex;
+    gap: 14px;
+    width: 100%;
+}
+
+#main-container.pc {
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+#main-container.mobile {
+    flex-direction: column;
+    align-items: center;
+}
+
+#left-panel {
+    width: 330px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#right-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 14px;
+}
+
+.section-label {
+    margin-bottom: 10px;
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+}
+
+#upload-panel,
+#wheel-panel,
+#controls-panel,
+#speed-panel {
+    width: 100%;
+}
+
+#upload-panel {
+    background: var(--black);
+    border: 1px solid var(--border);
+    padding: 12px;
+}
+
+#drop-zone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 72px;
+    border: 1px dashed var(--border-light);
+    cursor: pointer;
+    transition: border-color 0.18s ease, background 0.18s ease;
+    padding: 12px;
+}
+
+#drop-zone:hover,
+#drop-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(255, 85, 0, 0.08);
+}
+
+#drop-text {
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+}
+
+#drop-zone.loaded #drop-text {
+    color: var(--cyan);
+}
+
+#tape-name {
+    margin-top: 8px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    min-height: 14px;
+}
+
+#wheel-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+#wheel-outer {
+    width: 230px;
+    height: 230px;
+    position: relative;
+    cursor: grab;
+    touch-action: none;
+}
+
+#wheel-outer:active {
+    cursor: grabbing;
+}
+
+#wheel-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    transition: filter 0.12s ease;
+}
+
+#wheel-outer.active #wheel-svg {
+    filter: drop-shadow(0 0 12px rgba(255, 85, 0, 0.45));
+}
+
+#wheel-status {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    text-align: center;
+}
+
+#button-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+
+.control-button {
+    height: 44px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: background var(--transition), border-color var(--transition), color var(--transition), transform 0.08s ease;
+}
+
+.control-button:hover {
+    border-color: var(--border-light);
+    color: white;
+}
+
+.control-button:active {
+    transform: scale(0.97);
+}
+
+.control-button.on {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    box-shadow: 0 0 12px rgba(255, 85, 0, 0.35);
+}
+
+.control-button.lit {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    box-shadow: 0 0 10px rgba(0, 255, 204, 0.25);
+}
+
+#speed-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+#speed-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--text-dim);
+}
+
+#speed-track {
+    position: relative;
+    height: 4px;
+    background: var(--black);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+#speed-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+}
+
+#speed-value {
+    text-align: right;
+    font-family: var(--mono);
+    color: var(--cyan);
+    font-size: 11px;
+}
+
+#clock-panel {
+    position: relative;
+    background: var(--black);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+#odometer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 44px;
+    font-family: var(--mono);
+    color: var(--cyan);
+    text-shadow: 0 0 8px var(--cyan);
+}
+
+#wave-panel {
+    background: var(--black);
+    border: 1px solid var(--border);
+    padding: 10px;
+}
+
+#wave-canvas {
+    width: 100%;
+    height: 60px;
+    display: block;
+    cursor: pointer;
+    image-rendering: pixelated;
+    background: var(--black);
+    border: 1px solid var(--border);
+}
+
+#analyzer-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.channel {
+    flex: 1;
+}
+
+.channel-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-dim);
+}
+
+#db-scale {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 80px;
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--text-dim);
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    background: var(--black);
+    border: 1px solid var(--border);
+}
+
+#correlation {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+}
+
+#corr-track {
+    position: relative;
+    height: 6px;
+    flex: 1;
+    border: 1px solid var(--border);
+    background: var(--black);
+    overflow: hidden;
+}
+
+#corr-fill {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    background: var(--cyan);
+    transform: translateX(-50%);
+}
+
+#corr-value {
+    color: var(--cyan);
+}
+
+#statusbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    min-height: 34px;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+#status-message {
+    color: var(--text);
+}
+
+#status-mode {
+    color: var(--cyan);
+}
+
+.hidden {
+    display: none !important;
+}
+
+.center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
