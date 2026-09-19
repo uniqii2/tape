@@ -1,4 +1,4 @@
-﻿/*
+/*
 ============================================================
 TP-7 Tape Emulator
 audio-engine.js
@@ -85,13 +85,16 @@ export default class AudioEngine {
         this.sampleRate = decoded.sampleRate;
         this.position = 0;
 
+        const leftForWorklet = this.leftChannel.slice();
+        const rightForWorklet = this.rightChannel.slice();
+
         this.worklet.port.postMessage({
             type: 'load',
-            left: this.leftChannel,
-            right: this.rightChannel,
+            left: leftForWorklet,
+            right: rightForWorklet,
             sampleRate: this.sampleRate,
             length: this.buffer.length
-        });
+        }, [leftForWorklet.buffer, rightForWorklet.buffer]);
 
         this.loaded = true;
         this.fire('loaded', {
@@ -142,7 +145,7 @@ export default class AudioEngine {
             await this.context.resume();
         }
 
-        this.worklet.port.postMessage({ type: 'speed', value: this.speed });
+        this.worklet.port.postMessage({ type: 'speed', speed: this.speed });
         this.worklet.port.postMessage({ type: 'play' });
         this.isPlaying = true;
     }
@@ -173,7 +176,7 @@ export default class AudioEngine {
             return;
         }
 
-        this.worklet.port.postMessage({ type: 'speed', value: this.speed });
+        this.worklet.port.postMessage({ type: 'speed', speed: this.speed });
     }
 
     getSpeed() {
