@@ -4,6 +4,10 @@ const engine = new AudioEngine();
 
 const refs = {
   app: document.getElementById('app'),
+  settingsToggle: document.getElementById('settings-toggle'),
+  settingsPanel: document.getElementById('settings-panel'),
+  modeToggle: document.getElementById('mode-toggle'),
+  modeHold: document.getElementById('mode-hold'),
   layoutToggle: document.getElementById('layout-toggle'),
   mainContainer: document.getElementById('main-container'),
   fileInput: document.getElementById('file-input'),
@@ -12,7 +16,7 @@ const refs = {
   wheelStatus: document.getElementById('wheel-status'),
   odometer: document.getElementById('odometer'),
   speedFill: document.getElementById('speed-fill'),
-  speedValue: document.getElementById('speed-value'),
+  speedValue: document.getElementById('wheel-speed'),
   statusMessage: document.getElementById('status-message'),
   statusMode: document.getElementById('status-mode'),
   btnPlay: document.getElementById('btn-play'),
@@ -25,8 +29,9 @@ const refs = {
   canvasRight: document.getElementById('canvas-right'),
   peakLeft: document.getElementById('peak-left'),
   peakRight: document.getElementById('peak-right'),
-  corrFill: document.getElementById('corr-fill'),
-  corrValue: document.getElementById('corr-value'),
+  loudnessLeft: document.getElementById('loudness-left'),
+  loudnessRight: document.getElementById('loudness-right'),
+  wheelOuter: document.getElementById('wheel-outer'),
   wheelSvg: document.getElementById('wheel-svg'),
   wheelArt: document.getElementById('wheel-art')
 };
@@ -34,7 +39,18 @@ const refs = {
 const state = {
   mobile: false,
   wheelAngle: 0,
-  currentFile: null
+  lastWheelFrame: 0,
+  currentFile: null,
+  freeSpin: false,
+  holdingWheel: false,
+  resumeAfterHold: false,
+  lastWheelTouchAngle: 0,
+  lastWheelTouchTime: 0,
+  wheelVelocity: 0,
+  lastScratchUpdate: 0,
+  transportMode: 'toggle',
+  transportEffect: null,
+  previousSpeed: 1
 };
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -45,7 +61,7 @@ function setStatus(message, mode = 'OFFLINE') {
 }
 
 function updateSpeedUI() {
-  const speed = Number(engine.getSpeed() || 1);
+  const speed = Number(engine.getSpeed());
   const percent = clamp(((speed + 5) / 10) * 100, 0, 100);
   refs.speedFill.style.width = `${percent}%`;
   refs.speedValue.textContent = `${speed.toFixed(2)}×`;
@@ -68,16 +84,83 @@ function updateOdometer() {
   const buffer = engine.buffer;
 
   if (!buffer) {
-    refs.odometer.textContent = '00:00.000';
+    setOdometerDigits(0);
     return;
   }
 
   const frame = Math.max(0, Math.min(engine.position || 0, buffer.length - 1));
   const seconds = frame / buffer.sampleRate;
-  refs.odometer.textContent = formatTime(seconds);
+  setOdometerDigits(seconds);
+}
+
+function setOdometerDigits(seconds) {
+  if (!refs.odometer.children.length) return;
+
+  const limits = [10, 10, 6, 10, 6, 10];
+  const totalSeconds = Math.max(0, Math.floor(seconds));
+  const hours = Math.floor(totalSeconds / 3600) % 100;
+  const minutes = Math.floor(totalSeconds / 60) % 60;
+  const wholeSeconds = totalSeconds % 60;
+  const values = [
+    Math.floor(hours / 10), hours % 10,
+    Math.floor(minutes / 10), minutes % 10,
+    Math.floor(wholeSeconds / 10), wholeSeconds % 10
+  ];
+
+  let digitIndex = 0;
+  for (const child of refs.odometer.children) {
+    if (!child.classList.contains('odo-wrap')) continue;
+    const strip = child.firstElementChild;
+    strip.style.transform = `translateY(${-(limits[digitIndex] - 1 - values[digitIndex]) * 44}px)`;
+    digitIndex += 1;
+  }
+}
+
+function buildOdometer() {
+  const limits = [10, 10, 6, 10, 6, 10];
+  const labels = [0, 1, ':', 2, 3, ':', 4, 5];
+
+  for (const label of labels) {
+    if (label === ':') {
+      const separator = document.createElement('div');
+      separator.className = 'odo-sep';
+      separator.textContent = ':';
+      refs.odometer.appendChild(separator);
+      continue;
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = 'odo-wrap';
+    const strip = document.createElement('div');
+    strip.className = 'odo-strip';
+
+    for (let digit = limits[label] - 1; digit >= 0; digit -= 1) {
+      const cell = document.createElement('div');
+      cell.className = 'odo-cell';
+      cell.textContent = digit;
+      strip.appendChild(cell);
+    }
+
+    wrap.appendChild(strip);
+    refs.odometer.appendChild(wrap);
+  }
+
+  setOdometerDigits(0);
 }
 
 function updateWheelState() {
+  if (state.holdingWheel) {
+    refs.wheelStatus.textContent = 'MOTOR HELD';
+    refs.wheelStatus.style.color = '#ff5500';
+    return;
+  }
+
+  if (state.freeSpin) {
+    refs.wheelStatus.textContent = 'FREE SPIN CONTROL';
+    refs.wheelStatus.style.color = '#00ffcc';
+    return;
+  }
+
   const isPlaying = !!engine.isPlaying;
   refs.wheelStatus.textContent = isPlaying ? 'MOTOR RUNNING' : 'MOTOR STOPPED';
   refs.wheelStatus.style.color = isPlaying ? '#00ffcc' : '#ababab';
@@ -91,7 +174,34 @@ function updateTransportButtons() {
   const playing = !!engine.isPlaying;
   setActiveControl(refs.btnPlay, playing);
   setActiveControl(refs.btnPause, !playing && engine.loaded);
-  refs.btnFree.classList.toggle('lit', !!engine.isPlaying);
+  refs.btnFree.classList.toggle('lit', state.freeSpin);
+  setActiveControl(refs.btnFfwd, state.transportEffect === 'ffwd');
+  setActiveControl(refs.btnRewind, state.transportEffect === 'rewind');
+}
+
+function setTransportMode(mode) {
+  state.transportMode = mode;
+  refs.modeToggle.classList.toggle('active', mode === 'toggle');
+  refs.modeHold.classList.toggle('active', mode === 'hold');
+}
+
+function setTransportEffect(effect) {
+  if (!engine.loaded) return;
+
+  if (state.transportMode === 'toggle' && state.transportEffect === effect) {
+    engine.setSpeed(state.previousSpeed);
+    state.transportEffect = null;
+  } else {
+    state.previousSpeed = engine.getSpeed();
+    engine.setSpeed(effect === 'ffwd' ? 2 : -1);
+    state.transportEffect = effect;
+  }
+
+  state.freeSpin = false;
+  engine.play();
+  setStatus(state.transportEffect ? (effect === 'ffwd' ? 'FAST FORWARD 2.00×' : 'REVERSE 1.00×') : 'PLAYBACK ACTIVE', 'ONLINE');
+  updateSpeedUI();
+  updateTransportButtons();
 }
 
 function ensureWheelArt() {
@@ -148,10 +258,33 @@ function ensureWheelArt() {
   refs.wheelArt.dataset.ready = 'true';
 }
 
-function animateWheel() {
+function animateWheel(timestamp) {
   ensureWheelArt();
-  const multiplier = engine.isPlaying ? Math.max(0.4, Math.abs(engine.getSpeed() || 1)) * 18 : 0;
-  state.wheelAngle = (state.wheelAngle + multiplier) % 360;
+  const elapsed = state.lastWheelFrame ? Math.min(100, timestamp - state.lastWheelFrame) : 0;
+  const seconds = elapsed / 1000;
+
+  if (state.holdingWheel) {
+    if (state.freeSpin) {
+      state.wheelVelocity = 0;
+    } else if (timestamp - state.lastScratchUpdate > 80) {
+      state.wheelVelocity = 0;
+      if (engine.loaded && Math.abs(engine.getSpeed()) > 0.001) {
+        engine.setSpeed(0);
+      }
+    }
+    state.wheelAngle += state.wheelVelocity * seconds;
+  } else if (!state.freeSpin && engine.isPlaying) {
+    const motorVelocity = 180 * (Number(engine.getSpeed()) || 0);
+    const response = Math.min(1, seconds * 4.5);
+    state.wheelVelocity += (motorVelocity - state.wheelVelocity) * response;
+    state.wheelAngle += state.wheelVelocity * seconds;
+  } else if (Math.abs(state.wheelVelocity) > 0.01) {
+    state.wheelAngle += state.wheelVelocity * seconds;
+    state.wheelVelocity *= Math.pow(0.04, seconds);
+  }
+
+  state.wheelAngle = (state.wheelAngle % 360 + 360) % 360;
+  state.lastWheelFrame = timestamp;
   refs.wheelArt.setAttribute('transform', `rotate(${state.wheelAngle} 120 120)`);
   requestAnimationFrame(animateWheel);
 }
@@ -201,7 +334,7 @@ function drawWaveform() {
   ctx.stroke();
 }
 
-function drawChannel(canvas, analyser, peakTarget, color) {
+function drawChannel(canvas, analyser, peakTarget, color, loudnessTarget) {
   const ctx = canvas.getContext('2d');
   const width = canvas.width;
   const height = canvas.height;
@@ -241,16 +374,12 @@ function drawChannel(canvas, analyser, peakTarget, color) {
 
   const dB = 20 * Math.log10(Math.max(0.0001, max / 128));
   peakTarget.textContent = `${Math.max(-48, dB).toFixed(1)} dB`;
+  loudnessTarget.style.width = `${clamp((max / 128) * 100, 0, 100)}%`;
 }
 
 function updateAnalyzer() {
-  drawChannel(refs.canvasLeft, engine.leftAnalyser, refs.peakLeft, '#00ffcc');
-  drawChannel(refs.canvasRight, engine.rightAnalyser, refs.peakRight, '#ff5500');
-
-  const corr = 0.5;
-  refs.corrFill.style.left = '50%';
-  refs.corrFill.style.width = `${Math.max(12, Math.min(88, corr * 100))}%`;
-  refs.corrValue.textContent = corr.toFixed(2);
+  drawChannel(refs.canvasLeft, engine.leftAnalyser, refs.peakLeft, '#00ffcc', refs.loudnessLeft);
+  drawChannel(refs.canvasRight, engine.rightAnalyser, refs.peakRight, '#ff5500', refs.loudnessRight);
 }
 
 function renderUi() {
@@ -292,6 +421,15 @@ function bindEvents() {
     refs.layoutToggle.textContent = state.mobile ? '◫ MOBILE UI' : '◫ PC UI';
   });
 
+  refs.settingsToggle.addEventListener('click', () => {
+    const open = refs.settingsPanel.hidden;
+    refs.settingsPanel.hidden = !open;
+    refs.settingsToggle.setAttribute('aria-expanded', String(open));
+  });
+
+  refs.modeToggle.addEventListener('click', () => setTransportMode('toggle'));
+  refs.modeHold.addEventListener('click', () => setTransportMode('hold'));
+
   refs.dropZone.addEventListener('click', () => refs.fileInput.click());
   refs.dropZone.addEventListener('dragover', (event) => {
     event.preventDefault();
@@ -319,6 +457,8 @@ function bindEvents() {
       return;
     }
 
+    state.freeSpin = false;
+    state.transportEffect = null;
     await engine.play();
     setStatus('PLAYBACK ACTIVE', 'ONLINE');
     updateTransportButtons();
@@ -327,31 +467,152 @@ function bindEvents() {
   refs.btnPause.addEventListener('click', () => {
     if (!engine.loaded) return;
     engine.pause();
+    state.freeSpin = false;
+    state.transportEffect = null;
     setStatus('PLAYBACK PAUSED', 'READY');
     updateTransportButtons();
   });
 
   refs.btnFree.addEventListener('click', () => {
     if (!engine.loaded) return;
-    engine.stop();
-    setStatus('TAPE STOPPED', 'READY');
+
+    state.freeSpin = !state.freeSpin;
+
+    if (state.freeSpin) {
+      state.wheelVelocity = 0;
+      if (Math.abs(engine.getSpeed()) < 0.01) {
+        engine.setSpeed(1);
+      }
+      if (!engine.isPlaying) {
+        engine.play();
+      }
+      setStatus('FREE SPIN ACTIVE', 'ONLINE');
+    } else {
+      setStatus('PLAYBACK ACTIVE', 'ONLINE');
+    }
+
     updateTransportButtons();
-    updateSpeedUI();
+    updateWheelState();
   });
+
+  const beginTransportHold = (effect) => {
+    if (state.transportMode === 'hold') {
+      setTransportEffect(effect);
+    }
+  };
+
+  const endTransportHold = () => {
+    if (state.transportMode === 'hold' && state.transportEffect) {
+      engine.setSpeed(state.previousSpeed);
+      state.transportEffect = null;
+      updateSpeedUI();
+      updateTransportButtons();
+    }
+  };
 
   refs.btnFfwd.addEventListener('click', () => {
-    if (!engine.loaded) return;
-    const nextSpeed = engine.getSpeed() === 0 ? 1.5 : Math.min(5, Number(engine.getSpeed()) + 0.5);
-    engine.setSpeed(nextSpeed);
-    updateSpeedUI();
+    if (state.transportMode === 'toggle') setTransportEffect('ffwd');
   });
-
   refs.btnRewind.addEventListener('click', () => {
-    if (!engine.loaded) return;
-    const nextSpeed = engine.getSpeed() === 0 ? -1.5 : Math.max(-5, Number(engine.getSpeed()) - 0.5);
-    engine.setSpeed(nextSpeed);
-    updateSpeedUI();
+    if (state.transportMode === 'toggle') setTransportEffect('rewind');
   });
+  refs.btnFfwd.addEventListener('pointerdown', () => beginTransportHold('ffwd'));
+  refs.btnRewind.addEventListener('pointerdown', () => beginTransportHold('rewind'));
+  refs.btnFfwd.addEventListener('pointerup', endTransportHold);
+  refs.btnRewind.addEventListener('pointerup', endTransportHold);
+  refs.btnFfwd.addEventListener('pointercancel', endTransportHold);
+  refs.btnRewind.addEventListener('pointercancel', endTransportHold);
+
+  const getWheelAngle = (event) => {
+    const rect = refs.wheelOuter.getBoundingClientRect();
+    return Math.atan2(
+      event.clientY - (rect.top + rect.height / 2),
+      event.clientX - (rect.left + rect.width / 2)
+    );
+  };
+
+  const startWheelHold = (event) => {
+    if (!engine.loaded) return;
+
+    state.holdingWheel = true;
+    state.lastWheelTouchAngle = getWheelAngle(event);
+    state.lastWheelTouchTime = performance.now();
+    state.lastScratchUpdate = state.lastWheelTouchTime;
+    state.wheelVelocity = 0;
+    state.resumeAfterHold = !!engine.isPlaying && !state.freeSpin;
+    state.previousSpeed = engine.getSpeed();
+
+    if (state.resumeAfterHold) {
+      engine.setSpeed(0);
+    }
+
+    refs.wheelOuter.classList.add('active');
+    refs.wheelOuter.setPointerCapture?.(event.pointerId);
+    updateWheelState();
+  };
+
+  const moveWheelHold = (event) => {
+    if (!state.holdingWheel) return;
+
+    const angle = getWheelAngle(event);
+    const now = performance.now();
+    let delta = angle - state.lastWheelTouchAngle;
+    if (delta > Math.PI) delta -= Math.PI * 2;
+    if (delta < -Math.PI) delta += Math.PI * 2;
+    state.lastWheelTouchAngle = angle;
+
+    const elapsed = Math.max(0.001, (now - state.lastWheelTouchTime) / 1000);
+    state.lastWheelTouchTime = now;
+
+    if (state.freeSpin) {
+      state.wheelVelocity = 0;
+      engine.setSpeed(engine.getSpeed() + delta * 0.9);
+      updateSpeedUI();
+      setStatus(`DIAL SPEED ${engine.getSpeed().toFixed(2)}×`, 'ONLINE');
+      return;
+    }
+
+    if (engine.buffer) {
+      const scratchDegreesPerSecond = (delta * 180) / (Math.PI * elapsed);
+      const scratchSpeed = clamp(scratchDegreesPerSecond / 180, -5, 5);
+      state.wheelVelocity = scratchDegreesPerSecond;
+      state.lastScratchUpdate = now;
+      state.wheelAngle = (state.wheelAngle + (delta * 180) / Math.PI + 360) % 360;
+      refs.wheelArt.setAttribute('transform', `rotate(${state.wheelAngle} 120 120)`);
+      engine.setSpeed(scratchSpeed);
+      if (!engine.isPlaying && Math.abs(scratchSpeed) > 0.01) {
+        engine.play();
+      }
+      updateSpeedUI();
+      setStatus(`SCRATCH ${scratchSpeed.toFixed(2)}×`, 'ONLINE');
+    }
+  };
+
+  const endWheelHold = (event) => {
+    if (!state.holdingWheel) return;
+
+    state.holdingWheel = false;
+    refs.wheelOuter.classList.remove('active');
+    refs.wheelOuter.releasePointerCapture?.(event.pointerId);
+
+    if (state.resumeAfterHold) {
+      engine.setSpeed(state.previousSpeed);
+      engine.play();
+      setStatus('PLAYBACK ACTIVE', 'ONLINE');
+    } else if (state.freeSpin) {
+      setStatus('FREE SPIN ACTIVE', 'ONLINE');
+    }
+
+    state.resumeAfterHold = false;
+    updateWheelState();
+  };
+
+  refs.wheelOuter.addEventListener('pointerdown', startWheelHold);
+  refs.wheelOuter.addEventListener('pointermove', moveWheelHold);
+  refs.wheelOuter.addEventListener('pointerup', endWheelHold);
+  refs.wheelOuter.addEventListener('pointercancel', endWheelHold);
+
+  setTransportMode('toggle');
 }
 
 function attachEngineEvents() {
@@ -375,6 +636,7 @@ function attachEngineEvents() {
   });
 
   engine.on('ended', () => {
+    state.freeSpin = false;
     setStatus('END OF TAPE', 'READY');
     updateWheelState();
     updateTransportButtons();
@@ -388,6 +650,8 @@ function init() {
   setStatus('STANDBY · LOAD TAPE TO BEGIN', 'OFFLINE');
   refs.tapeName.textContent = 'NO TAPE LOADED';
   refs.odometer.textContent = '00:00.000';
+  refs.odometer.textContent = '';
+  buildOdometer();
   updateSpeedUI();
   updateTransportButtons();
   animateWheel();
