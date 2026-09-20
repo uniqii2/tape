@@ -105,6 +105,19 @@ body {
     justify-content: center;
 }
 
+#version-label {
+    position: fixed;
+    right: 12px;
+    bottom: 8px;
+    z-index: 10;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 1px;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
 #app {
     width: 100%;
     max-width: 960px;
