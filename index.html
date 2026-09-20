@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+    <title>TP-7 Tape Emulator</title>
+
+    <!-- Fonts -->
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;600&family=Share+Tech+Mono&display=swap"
+        rel="stylesheet">
+
+    <link
+        rel="stylesheet"
+        href="style.css">
+
+</head>
+
+<body>
+
+<div id="app">
+
+    <!-- ========================================================= -->
+    <!-- TOP BAR -->
+    <!-- ========================================================= -->
+
+    <header id="topbar">
+
+        <div id="brand">
+
+            TP-7 // TAPE EMULATOR
+
+        </div>
+
+        <div id="topbar-actions">
+            <button id="settings-toggle" aria-expanded="false" aria-controls="settings-panel">
+                ⚙ SETTINGS
+            </button>
+
+            <button id="themes-toggle" aria-expanded="false" aria-controls="themes-panel">
+                ◐ THEMES
+            </button>
+
+            <button id="layout-toggle">
+                ◫ PC UI
+            </button>
+        </div>
+
+    </header>
+
+    <section id="settings-panel" hidden>
+        <div class="settings-title">TRANSPORT BUTTONS</div>
+        <div class="settings-options" role="group" aria-label="Transport button behavior">
+            <button id="mode-toggle" class="settings-option active" type="button">TOGGLE</button>
+            <button id="mode-hold" class="settings-option" type="button">HOLD</button>
+        </div>
+    </section>
+
+    <section id="themes-panel" hidden>
+        <div class="settings-title">THEME PRESETS</div>
+        <div id="theme-presets" class="settings-options" role="group" aria-label="Theme presets">
+            <button class="settings-option theme-option active" type="button" data-theme="normal">NORMAL</button>
+            <button class="settings-option theme-option" type="button" data-theme="simple-light">SIMPLE LIGHT</button>
+            <button class="settings-option theme-option" type="button" data-theme="simple-dark">SIMPLE DARK</button>
+        </div>
+        <div class="settings-title theme-custom-title">CUSTOM COLORS</div>
+        <div id="theme-colors">
+            <label class="color-control">
+                <span>BACKGROUND</span>
+                <input id="color-bg" type="color" value="#161616">
+            </label>
+            <label class="color-control">
+                <span>PANELS</span>
+                <input id="color-panel" type="color" value="#1d1d1d">
+            </label>
+            <label class="color-control">
+                <span>ACCENT</span>
+                <input id="color-accent" type="color" value="#ff5500">
+            </label>
+            <label class="color-control">
+                <span>HIGHLIGHT</span>
+                <input id="color-cyan" type="color" value="#00ffcc">
+            </label>
+            <label class="color-control">
+                <span>GLOW</span>
+                <input id="color-gradient" type="color" value="#ff5500">
+            </label>
+            <label class="color-control">
+                <span>TIMER FADE</span>
+                <input id="color-timer-gradient" type="color" value="#090909">
+            </label>
+        </div>
+        <label class="gradient-toggle">
+            <input id="gradient-toggle" type="checkbox" checked>
+            <span>ENABLE GRADIENTS</span>
+        </label>
+    </section>
+
+
+    <!-- ========================================================= -->
+    <!-- MAIN -->
+    <!-- ========================================================= -->
+
+    <main
+        id="main-container"
+        class="pc">
+
+
+        <!-- ===================================================== -->
+        <!-- LEFT PANEL -->
+        <!-- ===================================================== -->
+
+        <section
+            id="left-panel"
+            class="panel">
+
+
+            <!-- Upload -->
+
+            <section id="upload-panel">
+
+                <div class="section-label">
+
+                    MEDIA SOURCE
+
+                </div>
+
+                <div id="drop-zone">
+
+                    <div id="drop-text">
+
+                        DROP AUDIO · OR TAP TO BROWSE
+
+                    </div>
+
+                </div>
+
+                <div id="tape-name">
+
+                    NO TAPE LOADED
+
+                </div>
+
+                <input
+                    id="file-input"
+                    type="file"
+                    accept="audio/*"
+                    hidden>
+
+            </section>
+
+
+            <!-- Wheel -->
+
+            <section id="wheel-panel">
+
+                <div class="section-label">
+
+                    DRIVE WHEEL
+
+                </div>
+
+                <div id="wheel-outer">
+
+                    <svg
+                        id="wheel-svg"
+                        viewBox="0 0 240 240"
+                        xmlns="http://www.w3.org/2000/svg">
+
+                        <g id="wheel-art"></g>
+
+                    </svg>
+
+                </div>
+
+                <div id="wheel-status">
+
+                    MOTOR STOPPED
+
+                </div>
+
+            </section>
+
+
+            <!-- Controls -->
+
+            <section id="controls-panel">
+
+                <div class="section-label">
+
+                    TRANSPORT
+
+                </div>
+
+                <div id="button-grid">
+
+                    <button
+                        id="btn-play"
+                        class="control-button">
+
+                        ▶
+
+                    </button>
+
+                    <button
+                        id="btn-pause"
+                        class="control-button">
+
+                        ■
+
+                    </button>
+
+                    <button
+                        id="btn-ffwd"
+                        class="control-button">
+
+                        ▶▶
+
+                    </button>
+
+                    <button
+                        id="btn-rewind"
+                        class="control-button">
+
+                        R◀
+
+                    </button>
+
+                    <button
+                        id="btn-free"
+                        class="control-button">
+
+                        FREE
+
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <!-- Speed -->
+
+            <section id="speed-panel">
+
+                <div class="section-label">
+
+                    PLAYBACK SPEED
+
+                </div>
+
+                <div id="speed-labels">
+
+                    <span>-2.0×</span>
+
+                    <span>SPEED</span>
+
+                    <span>+2.0×</span>
+
+                </div>
+
+                <div id="speed-track">
+
+                    <div id="speed-fill"></div>
+
+                </div>
+
+                <div id="wheel-speed">
+
+                    0.00×
+
+                </div>
+
+            </section>
+
+        </section>
+                <!-- ===================================================== -->
+        <!-- RIGHT PANEL -->
+        <!-- ===================================================== -->
+
+        <section id="right-panel">
+
+
+            <!-- Odometer -->
+
+            <section id="clock-panel" class="panel">
+
+                <div class="section-label">
+
+                    TAPE POSITION (HH:MM:SS)
+
+                </div>
+
+                <div id="odometer"></div>
+
+            </section>
+
+
+            <!-- Waveform -->
+
+            <section id="wave-panel" class="panel">
+
+                <div class="section-label">
+
+                    WAVEFORM
+
+                </div>
+
+                <canvas
+                    id="wave-canvas"
+                    width="600"
+                    height="60">
+                </canvas>
+
+            </section>
+
+
+            <!-- Stereo Analyzer -->
+
+            <section id="analyzer-panel" class="panel">
+
+                <div class="section-label">
+
+                    STEREO ANALYZER
+
+                </div>
+
+                <div id="analyzer-row">
+
+                    <div class="channel">
+
+                        <div class="channel-header">
+
+                            <span>L</span>
+
+                            <span id="peak-left">
+
+                                -∞ dB
+
+                            </span>
+
+                        </div>
+
+                        <canvas
+                            id="canvas-left"
+                            width="256"
+                            height="80">
+                        </canvas>
+
+                    </div>
+
+
+                    <div id="db-scale">
+
+                        <span>0</span>
+                        <span>-12</span>
+                        <span>-24</span>
+                        <span>-36</span>
+                        <span>-48</span>
+
+                    </div>
+
+
+                    <div class="channel">
+
+                        <div class="channel-header">
+
+                            <span id="peak-right">
+
+                                -∞ dB
+
+                            </span>
+
+                            <span>R</span>
+
+                        </div>
+
+                        <canvas
+                            id="canvas-right"
+                            width="256"
+                            height="80">
+                        </canvas>
+
+                    </div>
+
+                </div>
+
+
+                <div id="loudness-meters">
+
+                    <div class="loudness-row">
+                        <span class="loudness-label">L</span>
+                        <div class="loudness-track">
+                            <div id="loudness-left" class="loudness-fill"></div>
+                        </div>
+                    </div>
+
+                    <div class="loudness-row">
+                        <span class="loudness-label">R</span>
+                        <div class="loudness-track">
+                            <div id="loudness-right" class="loudness-fill"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+        </section>
+
+    </main>
+
+
+    <!-- ========================================================= -->
+    <!-- STATUS BAR -->
+    <!-- ========================================================= -->
+
+    <footer id="status-bar">
+
+        <div id="status-left">
+
+            <div
+                id="status-message"
+                class="status-item">
+
+                STANDBY
+
+            </div>
+
+            <div
+                id="status-mode"
+                class="status-item">
+
+                OFFLINE
+
+            </div>
+
+        </div>
+
+
+        <div id="status-right">
+
+            <div
+                id="time-display"
+                class="status-item">
+
+                00:00.000
+
+            </div>
+
+        </div>
+
+    </footer>
+
+</div>
+
+
+<script type="module" src="main.js"></script>
+
+</body>
+
+</html>
