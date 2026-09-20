@@ -642,6 +642,9 @@ function bindEvents() {
 
     state.freeSpin = false;
     state.transportEffect = null;
+    if (Math.abs(engine.getSpeed()) < 0.0001 && Math.abs(state.previousSpeed) > 0.0001) {
+      engine.setSpeed(state.previousSpeed);
+    }
     await engine.play();
     setStatus('PLAYBACK ACTIVE', 'ONLINE');
     updateTransportButtons();
@@ -714,6 +717,7 @@ function bindEvents() {
   const startWheelHold = (event) => {
     if (!engine.loaded) return;
 
+    const wasResumingAfterScratch = state.resumingAfterScratch;
     state.holdingWheel = true;
     state.lastWheelTouchAngle = getWheelAngle(event);
     state.lastWheelTouchTime = performance.now();
@@ -724,7 +728,11 @@ function bindEvents() {
     state.scratchMoved = false;
     state.resumingAfterScratch = false;
     state.resumeAfterHold = !!engine.isPlaying && !state.freeSpin;
-    state.previousSpeed = engine.getSpeed();
+    if (wasResumingAfterScratch) {
+      engine.setSpeed(state.previousSpeed);
+    } else {
+      state.previousSpeed = engine.getSpeed();
+    }
 
     if (state.resumeAfterHold) {
       engine.setSpeed(0);
@@ -775,9 +783,6 @@ function bindEvents() {
       state.wheelAngle = (state.wheelAngle + (delta * 180) / Math.PI + 360) % 360;
       refs.wheelArt.setAttribute('transform', `rotate(${state.wheelAngle} 120 120)`);
       engine.setSpeed(state.scratchSpeed);
-      if (!engine.isPlaying && Math.abs(state.scratchSpeed) > 0.01) {
-        engine.play();
-      }
       updateSpeedUI();
       setStatus(`SCRATCH ${scratchSeconds >= 0 ? '+' : ''}${scratchSeconds.toFixed(3)}S`, 'ONLINE');
     }
@@ -795,6 +800,10 @@ function bindEvents() {
       engine.setSpeed(state.scratchMoved ? state.scratchSpeed : state.previousSpeed);
       engine.play();
       setStatus('PLAYBACK ACTIVE', 'ONLINE');
+    } else if (state.scratchMoved && !state.freeSpin) {
+      engine.setSpeed(state.previousSpeed);
+      updateSpeedUI();
+      setStatus('PLAYBACK PAUSED', 'READY');
     } else if (state.freeSpin) {
       setStatus('FREE SPIN ACTIVE', 'ONLINE');
     }
@@ -837,6 +846,9 @@ function attachEngineEvents() {
       engine.setSpeed(state.previousSpeed);
       state.transportEffect = null;
       updateSpeedUI();
+      setStatus('BEGINNING OF TAPE', 'READY');
+    } else if (engine.getSpeed() < -0.0001) {
+      engine.setSpeed(0);
       setStatus('BEGINNING OF TAPE', 'READY');
     } else {
       setStatus('END OF TAPE', 'READY');
