@@ -833,7 +833,14 @@ function attachEngineEvents() {
 
   engine.on('ended', () => {
     state.freeSpin = false;
-    setStatus('END OF TAPE', 'READY');
+    if (state.transportEffect === 'rewind') {
+      engine.setSpeed(state.previousSpeed);
+      state.transportEffect = null;
+      updateSpeedUI();
+      setStatus('BEGINNING OF TAPE', 'READY');
+    } else {
+      setStatus('END OF TAPE', 'READY');
+    }
     updateWheelState();
     updateTransportButtons();
   });
