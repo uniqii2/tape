@@ -41,6 +41,9 @@ class TP7Player extends AudioWorkletProcessor {
 
         this.position = 0;
 
+        this.rangeStart = null;
+        this.rangeEnd = null;
+
         this.playing = false;
         this.loaded = false;
 
@@ -116,6 +119,9 @@ class TP7Player extends AudioWorkletProcessor {
 
                 this.position = 0;
 
+                this.rangeStart = null;
+                this.rangeEnd = null;
+
                 this.loaded = true;
 
                 this.currentSpeed = 0;
@@ -132,6 +138,10 @@ class TP7Player extends AudioWorkletProcessor {
 
             case "play":
 
+                this.rangeStart = null;
+
+                this.rangeEnd = null;
+
                 this.playing = true;
 
                 this.targetGain = 1;
@@ -141,6 +151,30 @@ class TP7Player extends AudioWorkletProcessor {
                     this.targetSpeed = 1;
 
                 }
+
+                break;
+
+            case "playRange":
+
+                this.rangeStart = Math.max(0, Math.min(message.start, this.length - 1));
+
+                this.rangeEnd = Math.max(this.rangeStart + 1, Math.min(message.end, this.length));
+
+                this.position = this.rangeStart;
+
+                this.playing = true;
+
+                this.targetGain = 1;
+
+                this.targetSpeed = 1;
+
+                break;
+
+            case "clearRange":
+
+                this.rangeStart = null;
+
+                this.rangeEnd = null;
 
                 break;
 
@@ -395,6 +429,16 @@ class TP7Player extends AudioWorkletProcessor {
             ---------------------------------------------*/
 
             this.position += this.currentSpeed;
+
+            if (this.rangeEnd !== null && this.position >= this.rangeEnd) {
+
+                this.position = this.rangeStart;
+
+            } else if (this.rangeStart !== null && this.position < this.rangeStart) {
+
+                this.position = this.rangeEnd - 1;
+
+            }
 
             /*---------------------------------------------
                 End of tape

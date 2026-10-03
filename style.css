@@ -141,6 +141,41 @@ body {
     gap: 6px;
 }
 
+.record-session-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--text);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 9px;
+}
+
+.record-indicator {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text-dim);
+}
+
+.record-session-button[aria-pressed="true"] {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.record-session-button[aria-pressed="true"] .record-indicator {
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent-glow);
+    animation: record-pulse 1s ease-in-out infinite;
+}
+
+@keyframes record-pulse {
+    50% { opacity: 0.35; }
+}
+
 #brand {
     font-family: var(--mono);
     font-size: 11px;
@@ -252,6 +287,53 @@ body {
     color: var(--cyan);
 }
 
+.recording-folder-title {
+    margin-top: 12px;
+}
+
+.recording-folder-control {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+}
+
+.microphone-select-control {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 8px;
+}
+
+#microphone-select {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 8px;
+}
+
+#recording-folder-name {
+    overflow: hidden;
+    color: var(--cyan);
+    font-family: var(--mono);
+    font-size: 8px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#recording-status {
+    min-height: 12px;
+    margin-top: 6px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 7px;
+}
+
 #main-container {
     display: flex;
     gap: 14px;
@@ -277,9 +359,741 @@ body {
 
 #right-panel {
     flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+
+#looper-panel {
+    width: 100%;
+    min-width: 0;
+    background: var(--panel);
+}
+
+.looper-heading,
+.looper-tape-meta,
+.looper-transport {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.looper-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+
+.looper-heading .section-label {
+    margin-bottom: 4px;
+}
+
+#looper-title {
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 400;
+}
+
+#looper-status {
+    max-width: 100%;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 8px;
+    overflow-wrap: anywhere;
+    text-align: left;
+}
+
+#looper-slots {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(28px, 1fr));
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.looper-slot {
+    min-width: 0;
+    height: 30px;
+    border: 1px solid var(--border);
+    background: var(--black);
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 9px;
+}
+
+.looper-slot.has-tape {
+    color: var(--text);
+    border-color: var(--border-light);
+}
+
+.looper-slot.selected {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    box-shadow: inset 0 -2px var(--cyan);
+}
+
+.looper-slot.recording {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.looper-tape-meta {
+    justify-content: flex-start;
+    margin-bottom: 8px;
+}
+
+.looper-name-control,
+.looper-style-control,
+.looper-source-control {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 7px;
+}
+
+.looper-name-control {
+    flex: 1;
+}
+
+.looper-name-control input,
+.looper-style-control select,
+.looper-source-control select {
+    min-width: 0;
+    height: 26px;
+    padding: 4px 6px;
+    border: 1px solid var(--border);
+    border-radius: 0;
+    background: var(--black);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 8px;
+}
+
+.looper-name-control input {
+    flex: 1;
+}
+
+.looper-style-control select,
+.looper-source-control select {
+    min-width: 88px;
+}
+
+#looper-waveform {
+    display: block;
+    width: 100%;
+    height: 112px;
+    border: 1px solid var(--border);
+    background: var(--black);
+}
+
+.looper-edit-controls {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin: 8px 0;
+}
+
+.looper-edit-controls label {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) 28px;
+    align-items: center;
+    gap: 3px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 7px;
+}
+
+.looper-edit-controls input {
+    width: 100%;
+    min-width: 0;
+    accent-color: var(--cyan);
+}
+
+.looper-edit-controls output {
+    color: var(--cyan);
+    text-align: right;
+}
+
+.looper-transport {
+    justify-content: flex-start;
+}
+
+.looper-transport button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
+    height: 30px;
+    padding: 0 9px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--text);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 8px;
+}
+
+.looper-transport button:hover:not(:disabled) {
+    border-color: var(--cyan);
+    color: var(--cyan);
+}
+
+.looper-transport button:disabled,
+.looper-edit-controls input:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+#looper-record span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #e52d35;
+}
+
+#looper-record[aria-pressed="true"] {
+    border-color: #e52d35;
+    color: #e52d35;
+}
+
+#looper-record[aria-pressed="true"] span {
+    animation: record-pulse 0.9s ease-in-out infinite;
+}
+
+.looper-keyboard-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 10px 0 5px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 7px;
+}
+
+#looper-keyboard {
+    display: grid;
+    grid-template-rows: 40px 56px;
+    height: 96px;
+    min-width: 0;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+.looper-white-keys {
+    position: relative;
+    z-index: 0;
+    grid-row: 2;
+    display: grid;
+    width: 100%;
+    height: 100%;
+    grid-template-columns: repeat(14, minmax(0, 1fr));
+}
+
+.looper-black-keys {
+    position: relative;
+    z-index: 4;
+    grid-row: 1;
+    pointer-events: none;
+}
+
+.looper-keyboard-wrap {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) 28px;
+    align-items: stretch;
+    gap: 5px;
+}
+
+.looper-octave-button {
+    align-self: center;
+    width: 28px;
+    height: 34px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--cyan);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 14px;
+}
+
+.looper-octave-button:disabled {
+    color: var(--text-dim);
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+.looper-key {
+    min-width: 0;
+    border: 1px solid #858680;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 7px;
+    touch-action: manipulation;
+}
+
+.looper-key.white-key {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    height: 100%;
+    padding: 0 0 5px;
+    background: #deded8;
+    color: #252624;
+}
+
+.looper-key.black-key {
+    position: absolute;
+    top: 0;
+    z-index: 4;
+    height: 100%;
+    padding: 0 1px 4px;
+    border-color: #080909;
+    background: linear-gradient(90deg, #111313, #303333 55%, #121414);
+    color: var(--cyan);
+    pointer-events: auto;
+}
+
+.looper-key:active,
+.looper-key.active {
+    background: var(--cyan);
+    border-color: var(--cyan);
+    color: var(--black);
+    transform: translateY(1px);
+}
+
+.looper-key:disabled {
+    cursor: not-allowed;
+    opacity: 0.38;
+}
+
+#looper-play.playing {
+    border-color: var(--cyan);
+    color: var(--cyan);
+}
+
+.looper-feature-line {
+    margin-top: 8px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 7px;
+    line-height: 1.8;
+}
+
+.looper-feature-line span {
+    margin-left: 12px;
+    color: var(--cyan-dark);
+}
+
+#mixer-panel {
+    width: 100%;
+    padding: 14px;
+    background: var(--panel);
+}
+
+#dj-wave-panel {
+    width: 100%;
+    min-width: 0;
+    background: var(--panel);
+}
+
+.dj-wave-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 10px;
+}
+
+.dj-wave-heading .section-label {
+    margin-bottom: 4px;
+}
+
+#dj-wave-title {
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.dj-zoom-control {
+    display: grid;
+    grid-template-columns: auto minmax(90px, 150px) 24px;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 8px;
+}
+
+.dj-zoom-control input {
+    width: 100%;
+    accent-color: var(--cyan);
+}
+
+.dj-zoom-control output {
+    color: var(--cyan);
+    text-align: right;
+}
+
+#dj-wave-empty {
+    padding: 24px 10px;
+    border: 1px dashed var(--border);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 9px;
+    text-align: center;
+}
+
+#dj-wave-empty[hidden] {
+    display: none;
+}
+
+#dj-wave-tracks {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.dj-wave-track {
+    min-width: 0;
+    border: 1px solid var(--border);
+    background: var(--black);
+}
+
+.dj-wave-track-label {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 5px 8px;
+    overflow: hidden;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 8px;
+}
+
+.dj-wave-track-label span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dj-wave-track-label span:last-child {
+    flex: 0 0 auto;
+    color: var(--cyan);
+}
+
+.dj-wave-canvas {
+    display: block;
+    width: 100%;
+    height: 74px;
+    cursor: grab;
+    touch-action: none;
+}
+
+.dj-wave-canvas.scrubbing {
+    cursor: grabbing;
+}
+
+.mixer-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.mixer-heading .section-label {
+    margin-bottom: 4px;
+}
+
+#mixer-title {
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 400;
+}
+
+.mixer-master-label {
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 8px;
+    white-space: nowrap;
+}
+
+.mixer-master-label span {
+    color: var(--cyan);
+    margin-left: 6px;
+}
+
+.mixer-scroll {
+    overflow-x: auto;
+    scrollbar-color: var(--border-light) var(--black);
+}
+
+#mixer-channels {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(130px, 1fr));
+    gap: 6px;
+    min-width: 816px;
+}
+
+.mixer-channel {
+    min-width: 0;
+    padding: 10px 8px;
+    border: 1px solid var(--border);
+    background: var(--black);
+}
+
+.mixer-channel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.mixer-channel-number {
+    color: var(--cyan);
+    font-family: var(--mono);
+    font-size: 12px;
+}
+
+.mixer-track-state {
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 7px;
+}
+
+.mixer-track-name {
+    display: block;
+    width: 100%;
+    height: 28px;
+    margin: 7px 0;
+    overflow: hidden;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 8px;
+    line-height: 28px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mixer-file-input {
+    display: none;
+}
+
+.mixer-load-button,
+.mixer-transport-button,
+.mixer-mute-button {
+    height: 28px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--text);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 8px;
+    transition: border-color var(--transition), color var(--transition), background var(--transition);
+}
+
+.mixer-load-button:hover,
+.mixer-transport-button:hover,
+.mixer-mute-button:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+}
+
+.mixer-load-button {
+    width: 100%;
+}
+
+.mixer-track-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-top: 8px;
+}
+
+.mixer-range-control {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) 34px;
+    align-items: center;
+    gap: 3px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 7px;
+}
+
+.mixer-range-control input {
+    width: 100%;
+    min-width: 0;
+    accent-color: var(--cyan);
+}
+
+.mixer-range-control input:disabled {
+    opacity: 0.35;
+}
+
+.mixer-range-control output {
+    color: var(--text);
+    font-size: 7px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.mixer-tempo-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 7px;
+}
+
+.mixer-detected-bpm {
+    color: var(--cyan);
+    text-align: right;
+}
+
+.mixer-eq {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    margin: 10px 0;
+}
+
+.mixer-eq-band {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.mixer-eq-band label {
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 7px;
+}
+
+.eq-dial {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border-light);
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 42%, var(--bg3) 0 52%, var(--bg) 55% 100%);
+    cursor: ns-resize;
+    touch-action: none;
+}
+
+.eq-dial:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 2px;
+}
+
+.eq-dial::before {
+    position: absolute;
+    top: 3px;
+    left: 50%;
+    width: 2px;
+    height: 9px;
+    border-radius: 2px;
+    background: var(--accent);
+    content: '';
+    transform: translateX(-50%) rotate(var(--dial-rotation, 0deg));
+    transform-origin: 50% 13px;
+}
+
+.eq-dial-value {
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 7px;
+    white-space: nowrap;
+}
+
+.mixer-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+}
+
+.mixer-transport-button:disabled,
+.mixer-mute-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+.mixer-transport-button.playing {
+    border-color: var(--cyan);
+    color: var(--cyan);
+}
+
+.mixer-mute-button.muted {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+@media (max-width: 600px) {
+    .looper-edit-controls {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+
+    .looper-tape-meta {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .looper-style-control {
+        justify-content: space-between;
+    }
+
+    .looper-style-control select,
+    .looper-source-control select {
+        flex: 1;
+    }
+
+    .looper-transport {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 5px;
+    }
+
+    .looper-transport button {
+        min-width: 0;
+        padding: 0 4px;
+    }
+
+    #looper-keyboard {
+        height: 88px;
+        grid-template-rows: 36px 52px;
+    }
+
+    .looper-keyboard-wrap {
+        grid-template-columns: 24px minmax(0, 1fr) 24px;
+        gap: 3px;
+    }
+
+    .looper-octave-button {
+        width: 24px;
+    }
+
+    #mixer-panel {
+        padding: 12px 8px;
+    }
+
+    .mixer-channel {
+        padding: 9px 6px;
+    }
 }
 
 .panel {
@@ -367,6 +1181,13 @@ body {
     touch-action: none;
 }
 
+@media (max-width: 600px) {
+    #wheel-outer {
+        width: min(230px, calc(100vw - 56px));
+        height: min(230px, calc(100vw - 56px));
+    }
+}
+
 #wheel-outer:active {
     cursor: grabbing;
 }
@@ -395,6 +1216,30 @@ body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 6px;
+}
+
+.loop-label {
+    margin-top: 10px;
+}
+
+#loop-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+
+#loop-status {
+    min-height: 12px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 8px;
+    text-align: center;
+}
+
+#btn-loop-record.recording {
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow);
 }
 
 .control-button {
@@ -430,6 +1275,36 @@ body {
     border-color: var(--cyan);
     color: var(--cyan);
     box-shadow: 0 0 10px var(--cyan-glow);
+}
+
+.mic-record-button {
+    display: grid;
+    place-items: center;
+}
+
+.mic-record-dot {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #e52d35;
+}
+
+.mic-record-button[aria-pressed="true"] {
+    border-color: #e52d35;
+    background: var(--bg3);
+    color: var(--text);
+    box-shadow: none;
+}
+
+.mic-record-button[aria-pressed="true"] .mic-record-dot {
+    animation: record-pulse 0.9s ease-in-out infinite;
+}
+
+.mic-record-button.on,
+.mic-record-button.lit,
+.mic-record-button:hover {
+    background: var(--bg3);
+    box-shadow: none;
 }
 
 #speed-panel {

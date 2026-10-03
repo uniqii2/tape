@@ -34,7 +34,7 @@
 
 <div id="app">
 
-    <div id="version-label">1.0.0-alpha</div>
+    <div id="version-label">1.1.0-alpha</div>
 
     <!-- ========================================================= -->
     <!-- TOP BAR -->
@@ -49,6 +49,9 @@
         </div>
 
         <div id="topbar-actions">
+            <button id="record-session" class="record-session-button" type="button" aria-label="Start session recording" aria-pressed="false" title="Start session recording">
+                <span class="record-indicator"></span> REC
+            </button>
             <button id="settings-toggle" aria-expanded="false" aria-controls="settings-panel">
                 ⚙ SETTINGS
             </button>
@@ -70,6 +73,19 @@
             <button id="mode-toggle" class="settings-option active" type="button">TOGGLE</button>
             <button id="mode-hold" class="settings-option" type="button">HOLD</button>
         </div>
+        <div class="settings-title recording-folder-title">MICROPHONE INPUT</div>
+        <label class="microphone-select-control" for="microphone-select">
+            <span>INPUT DEVICE</span>
+            <select id="microphone-select" aria-label="Select microphone">
+                <option value="default">DEFAULT MICROPHONE</option>
+            </select>
+        </label>
+        <div class="settings-title recording-folder-title">RECORDING DIRECTORY</div>
+        <div class="recording-folder-control">
+            <span id="recording-folder-name">BROWSER DOWNLOADS</span>
+            <button id="choose-recording-folder" class="settings-option" type="button">CHANGE</button>
+        </div>
+        <div id="recording-status" aria-live="polite"></div>
     </section>
 
     <section id="themes-panel" hidden>
@@ -212,7 +228,10 @@
 
                     <button
                         id="btn-play"
-                        class="control-button">
+                        class="control-button"
+                        type="button"
+                        aria-label="Play tape"
+                        title="Play tape">
 
                         ▶
 
@@ -220,7 +239,10 @@
 
                     <button
                         id="btn-pause"
-                        class="control-button">
+                        class="control-button"
+                        type="button"
+                        aria-label="Pause tape"
+                        title="Pause tape">
 
                         ■
 
@@ -228,7 +250,10 @@
 
                     <button
                         id="btn-ffwd"
-                        class="control-button">
+                        class="control-button"
+                        type="button"
+                        aria-label="Fast forward"
+                        title="Fast forward">
 
                         ▶▶
 
@@ -236,7 +261,10 @@
 
                     <button
                         id="btn-rewind"
-                        class="control-button">
+                        class="control-button"
+                        type="button"
+                        aria-label="Rewind"
+                        title="Rewind">
 
                         R◀
 
@@ -244,13 +272,38 @@
 
                     <button
                         id="btn-free"
-                        class="control-button">
+                        class="control-button"
+                        type="button"
+                        aria-label="Toggle free spin"
+                        title="Toggle free spin">
 
                         FREE
 
                     </button>
 
+                    <button
+                        id="btn-mic-record"
+                        class="control-button mic-record-button"
+                        type="button"
+                        aria-label="Start microphone recording"
+                        aria-pressed="false"
+                        title="Record from selected microphone">
+                        <span class="mic-record-dot"></span>
+                    </button>
+
                 </div>
+
+                <div class="section-label loop-label">LOOPS</div>
+
+                <div id="loop-controls">
+
+                    <button id="btn-loop-record" class="control-button" aria-label="Hold to record a loop" title="Hold to record a loop">1</button>
+                    <button id="btn-loop-previous" class="control-button" type="button" aria-label="Play previous loop" title="Play previous loop">−</button>
+                    <button id="btn-loop-next" class="control-button" type="button" aria-label="Play next loop" title="Play next loop">+</button>
+
+                </div>
+
+                <div id="loop-status" aria-live="polite">0 LOOPS</div>
 
             </section>
 
@@ -422,9 +475,102 @@
 
             </section>
 
+            <section id="looper-panel" class="panel" aria-labelledby="looper-title">
+                <div class="looper-heading">
+                    <div>
+                        <div class="section-label">STEREO TAPE LOOPER</div>
+                        <h2 id="looper-title">EIGHT SWAPPABLE TAPES</h2>
+                    </div>
+                    <div id="looper-status" aria-live="polite">SELECT A TAPE</div>
+                </div>
+                <div id="looper-slots" role="group" aria-label="Looper tape slots">
+                    <button type="button" class="looper-slot selected" data-slot="0" aria-label="Select tape 1">01</button>
+                    <button type="button" class="looper-slot" data-slot="1" aria-label="Select tape 2">02</button>
+                    <button type="button" class="looper-slot" data-slot="2" aria-label="Select tape 3">03</button>
+                    <button type="button" class="looper-slot" data-slot="3" aria-label="Select tape 4">04</button>
+                    <button type="button" class="looper-slot" data-slot="4" aria-label="Select tape 5">05</button>
+                    <button type="button" class="looper-slot" data-slot="5" aria-label="Select tape 6">06</button>
+                    <button type="button" class="looper-slot" data-slot="6" aria-label="Select tape 7">07</button>
+                    <button type="button" class="looper-slot" data-slot="7" aria-label="Select tape 8">08</button>
+                </div>
+                <div class="looper-tape-meta">
+                    <label class="looper-name-control">
+                        <span>TAPE NAME</span>
+                        <input id="looper-tape-name" type="text" maxlength="32" value="TAPE 01" aria-label="Tape name">
+                    </label>
+                    <label class="looper-style-control">
+                        <span>TAPE STYLE</span>
+                        <select id="looper-style" aria-label="Tape style">
+                            <option value="normal">NORMAL</option>
+                            <option value="warm">WARM</option>
+                            <option value="chrome">CHROME</option>
+                            <option value="worn">WORN</option>
+                        </select>
+                    </label>
+                    <label class="looper-source-control">
+                        <span>RECORD SOURCE</span>
+                        <select id="looper-source" aria-label="Looper recording source">
+                            <option value="master">MASTER MIX</option>
+                            <option value="microphone">MIC INPUT</option>
+                        </select>
+                    </label>
+                </div>
+                <canvas id="looper-waveform" width="800" height="128" aria-label="Selected stereo tape waveform"></canvas>
+                <div class="looper-edit-controls">
+                    <label><span>IN</span><input id="looper-trim-in" type="range" min="0" max="99" value="0" aria-label="Loop start point"><output id="looper-trim-in-value">0%</output></label>
+                    <label><span>OUT</span><input id="looper-trim-out" type="range" min="1" max="100" value="100" aria-label="Loop end point"><output id="looper-trim-out-value">100%</output></label>
+                    <label class="looper-zoom-control"><span>ZOOM</span><input id="looper-zoom" type="range" min="1" max="12" value="1" aria-label="Tape edit zoom"><output id="looper-zoom-value">1×</output></label>
+                </div>
+                <div class="looper-transport">
+                    <button id="looper-record" type="button" aria-label="Start recording to selected tape" title="Record stereo master to selected tape"><span aria-hidden="true"></span> RECORD</button>
+                    <button id="looper-play" type="button" aria-label="Play selected tape" disabled>PLAY</button>
+                    <button id="looper-stop" type="button" aria-label="Stop recording or playback" disabled>STOP</button>
+                    <button id="looper-clear" type="button" aria-label="Clear selected tape" disabled>CLEAR</button>
+                </div>
+                <div class="looper-keyboard-heading">
+                    <span>24-KEY SAMPLE PLAYBACK</span>
+                    <span id="looper-keyboard-note">F3—E5</span>
+                </div>
+                <div class="looper-keyboard-wrap">
+                    <button id="looper-octave-down" class="looper-octave-button" type="button" aria-label="Octave down" title="Octave down">−</button>
+                    <div id="looper-keyboard" role="group" aria-label="24 key sample keyboard"></div>
+                    <button id="looper-octave-up" class="looper-octave-button" type="button" aria-label="Octave up" title="Octave up">+</button>
+                </div>
+                <div class="looper-feature-line">32-BIT FLOAT CAPTURE <span>STEREO INPUT</span> 24-KEY SAMPLE PLAYBACK <span>4 TAPE VOICINGS</span></div>
+            </section>
+
         </section>
 
     </main>
+
+    <section id="mixer-panel" class="panel" aria-labelledby="mixer-title">
+        <div class="mixer-heading">
+            <div>
+                <div class="section-label">SIX CHANNEL MIXER</div>
+                <h1 id="mixer-title">CHANNELS 01—06</h1>
+            </div>
+            <div class="mixer-master-label">3-BAND EQ <span>±12 dB</span></div>
+        </div>
+        <div class="mixer-scroll">
+            <div id="mixer-channels" aria-label="Mixer channels"></div>
+        </div>
+    </section>
+
+    <section id="dj-wave-panel" class="panel" aria-labelledby="dj-wave-title">
+        <div class="dj-wave-heading">
+            <div>
+                <div class="section-label">LIVE DECKS</div>
+                <h2 id="dj-wave-title">SYNC WAVEFORMS</h2>
+            </div>
+            <label class="dj-zoom-control">
+                <span>ZOOM</span>
+                <input id="dj-wave-zoom" type="range" min="1" max="16" value="4" aria-label="Waveform zoom">
+                <output id="dj-wave-zoom-value">4×</output>
+            </label>
+        </div>
+        <div id="dj-wave-empty">START A MIXER TRACK TO SEE ITS WAVEFORM</div>
+        <div id="dj-wave-tracks" aria-label="Playing track waveforms"></div>
+    </section>
 
 
     <!-- ========================================================= -->
@@ -471,6 +617,7 @@
 </div>
 
 
+<script src="lame.min.js"></script>
 <script type="module" src="main.js"></script>
 
 </body>
